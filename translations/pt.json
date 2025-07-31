@@ -57,5 +57,20 @@
   "package_not_installed_status": "Pacote não instalado",
   "error_checking_package": "Erro ao verificar: {error}",
   "dependencies_missing": "Dependências faltando: {deps}",
-  "all_dependencies_available": "Todas as dependências est��o disponíveis"
+  "all_dependencies_available": "Todas as dependências estão disponíveis",
+  "settings": "Configurações",
+  "language": "Idioma",
+  "about": "Sobre",
+  "language_selection": "Seleção de Idioma",
+  "language_selection_description": "Escolha o idioma da interface do aplicativo",
+  "interface_language": "Idioma da Interface",
+  "language_restart_note": "Algumas mudanças podem exigir reinicialização",
+  "automatic": "Automático",
+  "language_changed": "Idioma alterado com sucesso",
+  "application_info": "Informações do Aplicativo",
+  "app_description": "Instalador universal de pacotes para Linux.\nSuporta Debian, Arch, Fedora e Alpine.",
+  "technical_info": "Informações Técnicas",
+  "supported_formats": "Formatos Suportados",
+  "developer": "Desenvolvedor",
+  "license": "Licença"
 }

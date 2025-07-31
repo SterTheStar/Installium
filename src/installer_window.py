@@ -9,6 +9,7 @@ from gi.repository import Gtk, Adw, GLib, Gio, Gdk
 from .package_detector import PackageDetector
 from .package_installer import PackageInstaller
 from .translator import get_translator, _
+from .settings_window import SettingsWindow
 
 class InstallerWindow(Adw.ApplicationWindow):
     """Janela principal do instalador de pacotes"""
@@ -191,6 +192,13 @@ class InstallerWindow(Adw.ApplicationWindow):
         self.select_button.connect("clicked", self._on_select_package)
         left_buttons_box.append(self.select_button)
         
+        # Botão configurações
+        self.settings_button = Gtk.Button()
+        self.settings_button.set_icon_name("preferences-system-symbolic")
+        self.settings_button.set_tooltip_text(_("settings"))
+        self.settings_button.connect("clicked", self._on_settings)
+        left_buttons_box.append(self.settings_button)
+        
         # Botão fechar com ícone X
         self.close_button = Gtk.Button()
         self.close_button.set_icon_name("window-close-symbolic")
@@ -227,13 +235,20 @@ class InstallerWindow(Adw.ApplicationWindow):
         # Título da janela
         self.set_title(_("app_title"))
         
+        # Atualizar tooltips dos botões
+        self.select_button.set_tooltip_text(_("select_package") if not self.package_info else _("select_another_package"))
+        self.settings_button.set_tooltip_text(_("settings"))
+        self.close_button.set_tooltip_text(_("close"))
+        
         # Textos iniciais
         if not self.package_info:
             self.package_name.set_markup(f"<b>{_('no_package_selected')}</b>")
             self.package_version.set_text(_("click_to_start"))
-            # Manter apenas tooltip para o botão de seleção (sem label)
-            self.select_button.set_tooltip_text(_("select_package"))
             self.install_button.set_label(_("install"))
+        else:
+            # Se há pacote carregado, atualizar display
+            self._update_package_display()
+            self._check_installation_status()
         
         # Labels dos detalhes
         detail_labels = [
@@ -262,13 +277,12 @@ class InstallerWindow(Adw.ApplicationWindow):
         Args:
             language_code: Código do idioma (en, pt, zh)
         """
+        # Não chamar set_language novamente se já está no idioma correto
+        if self.translator.current_language == language_code:
+            return
+            
         if self.translator.set_language(language_code):
             self._update_translations()
-            
-            # Recarregar informações do pacote se houver
-            if self.package_info:
-                self._update_package_display()
-                self._check_installation_status()
     
     def _on_select_package(self, button):
         """Callback para seleção de pacote"""
@@ -596,6 +610,11 @@ class InstallerWindow(Adw.ApplicationWindow):
                 self._show_info(_("installation_cancelled"))
         else:
             self.close()
+    
+    def _on_settings(self, button):
+        """Callback para abrir configurações"""
+        settings_window = SettingsWindow(self)
+        settings_window.present()
     
     def _on_close_app(self, button):
         """Callback para fechar o aplicativo"""

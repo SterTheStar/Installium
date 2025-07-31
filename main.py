@@ -31,6 +31,8 @@ gi.require_version('Adw', '1')
 from gi.repository import Gtk, Adw, GLib, Gio
 from src.installer_window import InstallerWindow
 from src.package_detector import PackageDetector
+from src.settings_window import SettingsWindow
+from src.translator import get_translator
 
 class PackageInstallerApp(Adw.Application):
     def __init__(self, language=None):
@@ -66,11 +68,6 @@ class PackageInstallerApp(Adw.Application):
                 print(f"Error: File not found: {arg}")
         
         win = InstallerWindow(application=app, package_file=self.package_file)
-        
-        # Definir idioma se especificado
-        if self.language:
-            win.set_language(self.language)
-            
         win.present()
     
     def on_open(self, app, files, n_files, hint):
@@ -86,11 +83,6 @@ class PackageInstallerApp(Adw.Application):
                     print(f"Warning: {file_path} is not a supported package type")
         
         win = InstallerWindow(application=app, package_file=self.package_file)
-        
-        # Definir idioma se especificado
-        if self.language:
-            win.set_language(self.language)
-            
         win.present()
 
 def parse_arguments():
@@ -151,8 +143,21 @@ def main():
         show_help()
         return 0
     
-    # Criar aplicação com idioma especificado
-    app = PackageInstallerApp(language=args.language)
+    # Determinar idioma a usar
+    language = args.language
+    if not language:
+        # Se não foi especificado via linha de comando, carregar configuração salva
+        language = SettingsWindow.load_language_setting()
+    
+    # Aplicar configuração de idioma antes de criar a janela
+    translator = get_translator()
+    if language and language != 'auto':
+        translator.set_language(language)
+    elif language == 'auto':
+        translator.detect_system_language()
+    
+    # Criar aplicação
+    app = PackageInstallerApp(language=language)
     
     # Preparar argumentos para GTK (remover argumentos de idioma)
     gtk_args = ['installium']  # Nome do programa

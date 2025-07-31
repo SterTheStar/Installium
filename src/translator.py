@@ -205,6 +205,16 @@ class Translator:
         """Retorna o nome do idioma atual"""
         languages = self.get_available_languages()
         return languages.get(self.current_language, 'English')
+    
+    def detect_system_language(self) -> bool:
+        """
+        Detecta e aplica o idioma do sistema
+        
+        Returns:
+            bool: True se detectou e aplicou com sucesso
+        """
+        self._detect_system_language()
+        return self.load_language(self.current_language)
 
 # Instância global do tradutor
 _translator = None

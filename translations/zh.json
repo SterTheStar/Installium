@@ -57,5 +57,20 @@
   "package_not_installed_status": "软件包未安装",
   "error_checking_package": "检查时出错: {error}",
   "dependencies_missing": "缺少依赖项: {deps}",
-  "all_dependencies_available": "所有依赖项都可用"
+  "all_dependencies_available": "所有依赖项都可用",
+  "settings": "设置",
+  "language": "语言",
+  "about": "关于",
+  "language_selection": "语言选择",
+  "language_selection_description": "选择应用程序界面语言",
+  "interface_language": "界面语言",
+  "language_restart_note": "某些更改可能需要重启",
+  "automatic": "自动",
+  "language_changed": "语言更改成功",
+  "application_info": "应用程序信息",
+  "app_description": "Linux 通用软件包安装程序。\n支持 Debian、Arch、Fedora 和 Alpine。",
+  "technical_info": "技术信息",
+  "supported_formats": "支持的格式",
+  "developer": "开发者",
+  "license": "许可证"
 }

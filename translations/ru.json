@@ -57,5 +57,20 @@
   "package_not_installed_status": "Пакет не установлен",
   "error_checking_package": "Ошибка проверки: {error}",
   "dependencies_missing": "Отсутствуют зависимости: {deps}",
-  "all_dependencies_available": "Все зависимости доступны"
+  "all_dependencies_available": "Все зависимости доступны",
+  "settings": "Настройки",
+  "language": "Язык",
+  "about": "О программе",
+  "language_selection": "Выбор языка",
+  "language_selection_description": "Выберите язык интерфейса приложения",
+  "interface_language": "Язык интерфейса",
+  "language_restart_note": "Некоторые изменения могут потребовать перезапуска",
+  "automatic": "Автоматически",
+  "language_changed": "Язык успешно изменен",
+  "application_info": "Информация о приложении",
+  "app_description": "Универсальный установщик пакетов для Linux. \nПод��ерживает Debian, Arch, Fedora и Alpine.",
+  "technical_info": "Техническая информация",
+  "supported_formats": "Поддерживаемые форматы",
+  "developer": "Разработчик",
+  "license": "Лицензия"
 }
