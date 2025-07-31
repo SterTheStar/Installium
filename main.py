@@ -7,6 +7,7 @@ Suporta: Debian (.deb), Arch (.pkg.tar.xz), Fedora (.rpm), Alpine (.apk)
 
 import sys
 import os
+import argparse
 
 # 👉 Redirecionar stderr para suprimir Gtk-WARNINGs
 sys.stderr = open(os.devnull, 'w')
@@ -32,7 +33,7 @@ from src.installer_window import InstallerWindow
 from src.package_detector import PackageDetector
 
 class PackageInstallerApp(Adw.Application):
-    def __init__(self):
+    def __init__(self, language=None):
         super().__init__(
             application_id='com.installium.app',
             flags=Gio.ApplicationFlags.HANDLES_OPEN
@@ -40,22 +41,36 @@ class PackageInstallerApp(Adw.Application):
         self.connect('activate', self.on_activate)
         self.connect('open', self.on_open)
         self.package_file = None
+        self.language = language
         
     def on_activate(self, app):
-        if len(sys.argv) > 1:
-            package_file_arg = sys.argv[1]
-            if os.path.exists(package_file_arg):
+        # Processar argumentos não relacionados ao idioma
+        remaining_args = []
+        for arg in sys.argv[1:]:
+            if not arg.startswith('--') or arg in ['--en', '--pt', '--ru', '--zh']:
+                continue
+            remaining_args.append(arg)
+        
+        # Verificar se há arquivo de pacote nos argumentos restantes
+        for arg in remaining_args:
+            if os.path.exists(arg):
                 detector = PackageDetector()
-                package_type = detector.detect_package_type(package_file_arg)
+                package_type = detector.detect_package_type(arg)
                 if package_type:
-                    self.package_file = os.path.abspath(package_file_arg)
-                    print(f"Abrindo com pacote: {self.package_file}")
+                    self.package_file = os.path.abspath(arg)
+                    print(f"Opening with package: {self.package_file}")
+                    break
                 else:
-                    print(f"Aviso: {package_file_arg} não é um tipo de pacote suportado")
+                    print(f"Warning: {arg} is not a supported package type")
             else:
-                print(f"Erro: Arquivo não encontrado: {package_file_arg}")
+                print(f"Error: File not found: {arg}")
         
         win = InstallerWindow(application=app, package_file=self.package_file)
+        
+        # Definir idioma se especificado
+        if self.language:
+            win.set_language(self.language)
+            
         win.present()
     
     def on_open(self, app, files, n_files, hint):
@@ -66,16 +81,92 @@ class PackageInstallerApp(Adw.Application):
                 package_type = detector.detect_package_type(file_path)
                 if package_type:
                     self.package_file = file_path
-                    print(f"Abrindo arquivo: {file_path}")
+                    print(f"Opening file: {file_path}")
                 else:
-                    print(f"Aviso: {file_path} não é um tipo de pacote suportado")
+                    print(f"Warning: {file_path} is not a supported package type")
         
         win = InstallerWindow(application=app, package_file=self.package_file)
+        
+        # Definir idioma se especificado
+        if self.language:
+            win.set_language(self.language)
+            
         win.present()
 
+def parse_arguments():
+    """Processa argumentos de linha de comando"""
+    parser = argparse.ArgumentParser(
+        description='Universal Package Installer',
+        add_help=False  # Desabilitar help padrão para não conflitar com GTK
+    )
+    
+    # Argumentos de idioma
+    parser.add_argument('--en', action='store_const', const='en', dest='language',
+                       help='Set language to English')
+    parser.add_argument('--pt', action='store_const', const='pt', dest='language',
+                       help='Definir idioma para Português')
+    parser.add_argument('--ru', action='store_const', const='ru', dest='language',
+                       help='Установить язык на русский')
+    parser.add_argument('--zh', action='store_const', const='zh', dest='language',
+                       help='设置语言为中文')
+    
+    # Arquivo de pacote (opcional)
+    parser.add_argument('package_file', nargs='?', 
+                       help='Package file to open (.deb, .rpm, .pkg.tar.xz, .apk)')
+    
+    # Argumentos de ajuda
+    parser.add_argument('-h', '--help', action='store_true',
+                       help='Show this help message and exit')
+    
+    return parser.parse_known_args()
+
+def show_help():
+    """Mostra ajuda personalizada"""
+    print("""Universal Package Installer
+
+Usage: installium [OPTIONS] [PACKAGE_FILE]
+
+Language Options:
+  --en          Set language to English
+  --pt          Definir idioma para Português  
+  --ru          Установить язык на русский
+  --zh          设置语言为中文
+
+Arguments:
+  PACKAGE_FILE  Package file to open (.deb, .rpm, .pkg.tar.xz, .apk)
+
+Examples:
+  installium --en                    # Open in English
+  installium --pt package.deb        # Open package.deb in Portuguese
+  installium --ru package.rpm        # Open package.rpm in Russian
+  installium package.pkg.tar.xz      # Open package with system language
+""")
+
 def main():
-    app = PackageInstallerApp()
-    return app.run(sys.argv)
+    # Processar argumentos
+    args, unknown = parse_arguments()
+    
+    # Mostrar ajuda se solicitado
+    if args.help:
+        show_help()
+        return 0
+    
+    # Criar aplicação com idioma especificado
+    app = PackageInstallerApp(language=args.language)
+    
+    # Preparar argumentos para GTK (remover argumentos de idioma)
+    gtk_args = ['installium']  # Nome do programa
+    
+    # Adicionar argumentos desconhecidos (provavelmente arquivos)
+    for arg in unknown:
+        if not arg.startswith('--') or arg not in ['--en', '--pt', '--ru', '--zh']:
+            gtk_args.append(arg)
+    
+    # Adicionar arquivo de pacote se especificado
+    if args.package_file:
+        gtk_args.append(args.package_file)
+    
+    return app.run(gtk_args)
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())

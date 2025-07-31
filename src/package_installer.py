@@ -7,6 +7,7 @@ import subprocess
 import threading
 from typing import Callable, Optional
 from gi.repository import GLib
+from .translator import get_translator, _
 
 class PackageInstaller:
     """Classe para instalar pacotes de diferentes distribuições"""
@@ -28,7 +29,7 @@ class PackageInstaller:
             completion_callback: Callback para conclusão (sucesso, mensagem)
         """
         if self.is_installing:
-            completion_callback(False, "Já existe uma instalação em andamento")
+            completion_callback(False, _("installation_in_progress"))
             return
         
         self.is_installing = True
@@ -50,11 +51,11 @@ class PackageInstaller:
             cmd = self._get_install_command(file_path, package_type)
             if not cmd:
                 GLib.idle_add(completion_callback, False, 
-                            f"Tipo de pacote não suportado: {package_type}")
+                            _("unsupported_package_type_install", type=package_type))
                 return
             
             # Atualizar progresso
-            GLib.idle_add(progress_callback, "Iniciando instalação...")
+            GLib.idle_add(progress_callback, _("starting_installation"))
             
             # Executar comando
             self.process = subprocess.Popen(
@@ -76,20 +77,20 @@ class PackageInstaller:
                     line = line.strip()
                     output_lines.append(line)
                     # Atualizar progresso com a linha atual
-                    GLib.idle_add(progress_callback, f"Instalando: {line[:50]}...")
+                    GLib.idle_add(progress_callback, _("installing_progress", progress=line[:50]))
             
             # Verificar resultado
             return_code = self.process.poll()
             
             if return_code == 0:
-                GLib.idle_add(completion_callback, True, "Pacote instalado com sucesso!")
+                GLib.idle_add(completion_callback, True, _("package_installed_successfully"))
             else:
                 error_msg = "\n".join(output_lines[-5:])  # Últimas 5 linhas
                 GLib.idle_add(completion_callback, False, 
-                            f"Erro na instalação:\n{error_msg}")
+                            _("installation_error", error=error_msg))
                 
         except Exception as e:
-            GLib.idle_add(completion_callback, False, f"Erro durante instalação: {str(e)}")
+            GLib.idle_add(completion_callback, False, _("installation_exception", error=str(e)))
         
         finally:
             self.is_installing = False
@@ -143,6 +144,6 @@ class PackageInstaller:
                 missing.append(dep)
         
         if missing:
-            return False, f"Dependências faltando: {', '.join(missing)}"
+            return False, _("dependencies_missing", deps=', '.join(missing))
         
-        return True, "Todas as dependências estão disponíveis"
+        return True, _("all_dependencies_available")

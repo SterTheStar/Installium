@@ -143,7 +143,7 @@ class InstallerWindow(Adw.ApplicationWindow):
             value = Gtk.Label()
             value.set_halign(Gtk.Align.START)
             value.set_valign(Gtk.Align.START)
-            value.set_selectable(True)
+            value.set_selectable(False)
             value.set_wrap(False)  # Desabilitar wrap para controlar truncamento
             value.set_max_width_chars(50)
             value.set_ellipsize(3)  # Pango.EllipsizeMode.END
@@ -194,7 +194,7 @@ class InstallerWindow(Adw.ApplicationWindow):
         # Botão fechar com ícone X
         self.close_button = Gtk.Button()
         self.close_button.set_icon_name("window-close-symbolic")
-        self.close_button.set_tooltip_text("Fechar")
+        self.close_button.set_tooltip_text(_("close"))
         self.close_button.connect("clicked", self._on_close_app)
         left_buttons_box.append(self.close_button)
         
@@ -387,36 +387,36 @@ class InstallerWindow(Adw.ApplicationWindow):
                     
                     if version_comparison > 0:
                         # Versão do pacote é maior - mostrar "Atualizar"
-                        self.install_status.set_markup(f"<span color='#f6d32d'>⚠ Versão mais recente disponível (instalada: {installed_version})</span>")
+                        self.install_status.set_markup(f"<span color='#f6d32d'>{_('newer_version_available', version=installed_version)}</span>")
                         self.install_status.set_visible(True)
-                        self.install_button.set_label("Atualizar")
+                        self.install_button.set_label(_("update"))
                         self.install_button.add_css_class("suggested-action")
                         self.install_button.remove_css_class("destructive-action")
                     elif version_comparison < 0:
                         # Versão instalada é maior - mostrar "Downgrade"
-                        self.install_status.set_markup(f"<span color='#f66151'>⚠ Versão mais antiga (instalada: {installed_version})</span>")
+                        self.install_status.set_markup(f"<span color='#f66151'>{_('older_version', version=installed_version)}</span>")
                         self.install_status.set_visible(True)
-                        self.install_button.set_label("Downgrade")
+                        self.install_button.set_label(_("downgrade"))
                         self.install_button.add_css_class("destructive-action")
                         self.install_button.remove_css_class("suggested-action")
                     else:
                         # Mesma versão - mostrar "Reinstalar"
-                        self.install_status.set_markup(f"<span color='#2ec27e'>✓ {status_msg}</span>")
+                        self.install_status.set_markup(f"<span color='#2ec27e'>{_('package_installed', message=status_msg)}</span>")
                         self.install_status.set_visible(True)
-                        self.install_button.set_label("Reinstalar")
+                        self.install_button.set_label(_("reinstall"))
                         self.install_button.add_css_class("destructive-action")
                         self.install_button.remove_css_class("suggested-action")
                 else:
                     # Não foi possível comparar versões - usar comportamento padrão
-                    self.install_status.set_markup(f"<span color='#2ec27e'>✓ {status_msg}</span>")
+                    self.install_status.set_markup(f"<span color='#2ec27e'>{_('package_installed', message=status_msg)}</span>")
                     self.install_status.set_visible(True)
-                    self.install_button.set_label("Reinstalar")
+                    self.install_button.set_label(_("reinstall"))
                     self.install_button.add_css_class("destructive-action")
                     self.install_button.remove_css_class("suggested-action")
             else:
-                self.install_status.set_markup(f"<span color='#e01b24'>✗ {status_msg}</span>")
+                self.install_status.set_markup(f"<span color='#e01b24'>{_('package_not_installed', message=status_msg)}</span>")
                 self.install_status.set_visible(True)
-                self.install_button.set_label("Instalar")
+                self.install_button.set_label(_("install"))
                 self.install_button.add_css_class("suggested-action")
                 self.install_button.remove_css_class("destructive-action")
     
@@ -454,17 +454,17 @@ class InstallerWindow(Adw.ApplicationWindow):
         
         # Atualizar textos
         self.package_name.set_markup(f"<b>{package_name}</b>")
-        self.package_version.set_text(f"Versão: {info.get('version', 'Desconhecida')}")
+        self.package_version.set_text(f"{_('version_prefix')} {info.get('version', _('unknown'))}")
         
         # Formatar tamanho
         formatted_size = self._format_size(info.get('size', 'Desconhecido'))
         
         # Atualizar detalhes (incluindo descrição)
         details = [
-            info.get('type', 'Desconhecido').title(),
-            info.get('version', 'Desconhecida'),
-            info.get('description', 'Sem descrição'),
-            info.get('maintainer', 'Desconhecido'),
+            info.get('type', _('unknown')).title(),
+            info.get('version', _('unknown')),
+            info.get('description', _('no_description')),
+            info.get('maintainer', _('unknown')),
             formatted_size
         ]
         
@@ -480,7 +480,7 @@ class InstallerWindow(Adw.ApplicationWindow):
         # Mostrar detalhes e habilitar instalação
         self.details_box.set_visible(True)
         self.install_button.set_sensitive(True)
-        self.select_button.set_tooltip_text("Selecionar Outro Pacote")
+        self.select_button.set_tooltip_text(_("select_another_package"))
         self.select_button.remove_css_class("suggested-action")
     
     def _set_description_with_tooltip(self, label, description):
@@ -532,7 +532,7 @@ class InstallerWindow(Adw.ApplicationWindow):
         # Verificar dependências
         deps_ok, deps_msg = self.installer.check_dependencies(package_type)
         if not deps_ok:
-            self._show_error(f"Dependências faltando:\n{deps_msg}")
+            self._show_error(f"{_('missing_dependencies')}:\n{deps_msg}")
             return
         
         # Mostrar progresso e desabilitar botões
@@ -593,7 +593,7 @@ class InstallerWindow(Adw.ApplicationWindow):
                 self._show_progress(False)
                 self.install_button.set_sensitive(True)
                 self.select_button.set_sensitive(True)
-                self._show_info("Instalação cancelada")
+                self._show_info(_("installation_cancelled"))
         else:
             self.close()
     
@@ -603,19 +603,19 @@ class InstallerWindow(Adw.ApplicationWindow):
     
     def _show_error(self, message):
         """Mostra diálogo de erro"""
-        self._show_dialog("Erro", message, "dialog-error")
+        self._show_dialog(_("error"), message, "dialog-error")
     
     def _show_warning(self, message):
         """Mostra diálogo de aviso"""
-        self._show_dialog("Aviso", message, "dialog-warning")
+        self._show_dialog(_("warning"), message, "dialog-warning")
     
     def _show_success(self, message):
         """Mostra diálogo de sucesso"""
-        self._show_dialog("Sucesso", message, "dialog-information")
+        self._show_dialog(_("success"), message, "dialog-information")
     
     def _show_info(self, message):
         """Mostra diálogo de informação"""
-        self._show_dialog("Informação", message, "dialog-information")
+        self._show_dialog(_("information"), message, "dialog-information")
     
     def _compare_versions(self, version1, version2):
         """
@@ -706,7 +706,7 @@ class InstallerWindow(Adw.ApplicationWindow):
             body=message
         )
         
-        dialog.add_response("ok", "OK")
+        dialog.add_response("ok", _("ok"))
         dialog.set_default_response("ok")
         dialog.set_close_response("ok")
         

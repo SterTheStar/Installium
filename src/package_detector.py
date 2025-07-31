@@ -9,6 +9,7 @@ import tempfile
 import shutil
 from pathlib import Path
 from typing import Dict, Optional, Tuple
+from .translator import get_translator, _
 
 class PackageDetector:
     """Classe para detectar e extrair informações de pacotes"""
@@ -62,7 +63,7 @@ class PackageDetector:
         package_type = self.detect_package_type(file_path)
         
         if not package_type:
-            return {'error': 'Tipo de pacote não suportado'}
+            return {'error': _('unsupported_package_type')}
         
         try:
             if package_type == 'debian':
@@ -74,9 +75,9 @@ class PackageDetector:
             elif package_type == 'alpine':
                 return self._extract_apk_info(file_path)
         except Exception as e:
-            return {'error': f'Erro ao extrair informações: {str(e)}'}
+            return {'error': _('error_extracting_info', error=str(e))}
         
-        return {'error': 'Tipo de pacote não implementado'}
+        return {'error': _('package_not_implemented')}
     
     def _extract_deb_info(self, file_path: str) -> Dict[str, str]:
         """Extrai informações de pacotes .deb"""
@@ -100,7 +101,7 @@ class PackageDetector:
                 'type': 'debian'
             }
         except subprocess.CalledProcessError:
-            return {'error': 'Erro ao ler pacote .deb'}
+            return {'error': _('error_reading_deb')}
     
     def _extract_arch_info(self, file_path: str) -> Dict[str, str]:
         """Extrai informações de pacotes Arch (.pkg.tar.xz/.pkg.tar.zst)"""
@@ -130,7 +131,7 @@ class PackageDetector:
         except:
             pass
         
-        return {'error': 'Erro ao ler pacote Arch'}
+        return {'error': _('error_reading_arch')}
     
     def _extract_rpm_info(self, file_path: str) -> Dict[str, str]:
         """Extrai informações de pacotes .rpm"""
@@ -153,7 +154,7 @@ class PackageDetector:
                 'type': 'fedora'
             }
         except subprocess.CalledProcessError:
-            return {'error': 'Erro ao ler pacote .rpm'}
+            return {'error': _('error_reading_rpm')}
     
     def _extract_apk_info(self, file_path: str) -> Dict[str, str]:
         """Extrai informações de pacotes .apk (Alpine)"""
@@ -199,7 +200,7 @@ class PackageDetector:
             }
             
         except:
-            return {'error': 'Erro ao ler pacote .apk'}
+            return {'error': _('error_reading_apk')}
     
     def is_compatible(self, package_type: str) -> bool:
         """Verifica se o pacote é compatível com a distribuição atual"""
@@ -236,9 +237,9 @@ class PackageDetector:
             elif package_type == 'alpine':
                 return self._check_apk_installed(package_name)
         except Exception as e:
-            return False, f"Erro ao verificar: {str(e)}"
+            return False, _("error_checking_package", error=str(e))
         
-        return False, "Tipo de pacote não suportado"
+        return False, _("unsupported_package_type")
     
     def _check_deb_installed(self, package_name: str) -> tuple[bool, str]:
         """Verifica se um pacote .deb está instalado"""
@@ -252,11 +253,11 @@ class PackageDetector:
                     parts = line.split()
                     if len(parts) >= 3:
                         version = parts[2]
-                        return True, f"Versão instalada: {version}"
+                        return True, _("installed_version", version=version)
             
-            return False, "Pacote não instalado"
+            return False, _("package_not_installed_status")
         except subprocess.CalledProcessError:
-            return False, "Pacote não instalado"
+            return False, _("package_not_installed_status")
     
     def _check_arch_installed(self, package_name: str) -> tuple[bool, str]:
         """Verifica se um pacote Arch está instalado"""
@@ -269,7 +270,7 @@ class PackageDetector:
                 parts = result.stdout.strip().split()
                 if len(parts) >= 2:
                     version = parts[1]
-                    return True, f"Versão instalada: {version}"
+                    return True, _("installed_version", version=version)
                 else:
                     return True, "Instalado (versão desconhecida)"
             
