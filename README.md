@@ -2,7 +2,7 @@
 
 Installium is a lightweight, user-friendly tool for installing packages on Linux distributions quickly and efficiently. Designed for users who want to avoid the terminal without losing control.
 
-<img width="722" height="440" alt="imagem" src="https://github.com/user-attachments/assets/7562cd41-5aff-40e1-80cd-e5fb08e30b0c" />
+<img width="722" height="440" alt="imagem" src="https://github.com/user-attachments/assets/6e428621-e5ac-421a-822e-3efe3645f9ce" />
 
 ## 📦 Supported Distributions
 
