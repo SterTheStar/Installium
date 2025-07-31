@@ -26,7 +26,7 @@ Installium [path_to_package]
 ```
 
 ### Method 3: Application Menu
-1. Look for "Universal Package Installer" in your app menu
+1. Look for "Installium" in your app menu
 2. Launch the application
 3. Click "Select Package" to choose a file
 
