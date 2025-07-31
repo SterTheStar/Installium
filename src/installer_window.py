@@ -21,8 +21,8 @@ class InstallerWindow(Adw.ApplicationWindow):
         
         # Configurações da janela
         self.set_title(_("app_title"))
-        self.set_default_size(640, 400)  # Altura aumentada para evitar warnings
-        self.set_size_request(640, 400)  # Tamanho mínimo
+        self.set_default_size(600, 240)  # Largura reduzida
+        self.set_size_request(600, 240)  # Tamanho mínimo
         self.set_resizable(False)  # Janela com tamanho fixo
         self.set_deletable(True)
         
@@ -53,8 +53,8 @@ class InstallerWindow(Adw.ApplicationWindow):
         natural_size = self.get_default_size()
         
         # Ajustar para um tamanho adequado
-        width = max(640, natural_size[0])
-        height = max(400, natural_size[1])
+        width = max(600, natural_size[0])  # Largura mínima reduzida
+        height = max(240, natural_size[1])  # Ajustado para altura menor
         
         # Definir tamanho final
         self.set_default_size(width, height)
@@ -68,17 +68,16 @@ class InstallerWindow(Adw.ApplicationWindow):
         """Constrói a interface do usuário"""
         # Container principal
         main_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
-        main_box.set_margin_top(24)
-        main_box.set_margin_bottom(24)
-        main_box.set_margin_start(24)
-        main_box.set_margin_end(24)
+        main_box.set_margin_top(20)
+        main_box.set_margin_bottom(16)  # Reduzido para eliminar espaço em branco
+        main_box.set_margin_start(20)
+        main_box.set_margin_end(20)
         
-        # Área de conteúdo principal (expandível)
-        content_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
-        content_box.set_vexpand(True)
+        # Área de conteúdo principal
+        content_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
         
         # Header com ícone e título (alinhado à esquerda)
-        header_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=16)
+        header_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
         header_box.set_halign(Gtk.Align.START)
         
         # Ícone do pacote
@@ -114,18 +113,19 @@ class InstallerWindow(Adw.ApplicationWindow):
         
         # Separador
         separator = Gtk.Separator()
-        separator.set_margin_top(12)
-        separator.set_margin_bottom(12)
+        separator.set_margin_top(10)
+        separator.set_margin_bottom(10)
         content_box.append(separator)
         
-        # Área de detalhes (inicialmente oculta)
-        self.details_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
-        self.details_box.set_visible(False)
+        # Área de detalhes (sempre visível)
+        self.details_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        self.details_box.set_margin_bottom(18)  # Espaçamento abaixo da info de tamanho
+        self.details_box.set_visible(True)
         
         # Grid com informações detalhadas
         details_grid = Gtk.Grid()
         details_grid.set_column_spacing(12)
-        details_grid.set_row_spacing(8)
+        details_grid.set_row_spacing(4)
         details_grid.set_halign(Gtk.Align.START)
         
         # Labels de informações
@@ -144,8 +144,10 @@ class InstallerWindow(Adw.ApplicationWindow):
             value.set_halign(Gtk.Align.START)
             value.set_valign(Gtk.Align.START)
             value.set_selectable(True)
-            value.set_wrap(True)
+            value.set_wrap(False)  # Desabilitar wrap para controlar truncamento
             value.set_max_width_chars(50)
+            value.set_ellipsize(3)  # Pango.EllipsizeMode.END
+            value.set_text("-")  # Valor inicial vazio
             details_grid.attach(value, 1, i, 1, 1)
             self.detail_values.append(value)
         
@@ -176,7 +178,6 @@ class InstallerWindow(Adw.ApplicationWindow):
         # Botões de ação (fixos na parte inferior)
         button_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
         button_box.set_margin_top(16)
-        button_box.set_hexpand(True)
         
         # Container para botão selecionar e fechar (à esquerda)
         left_buttons_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
@@ -469,13 +470,45 @@ class InstallerWindow(Adw.ApplicationWindow):
         
         for i, value in enumerate(details):
             if i < len(self.detail_values):
-                self.detail_values[i].set_text(str(value))
+                # Para a descrição (índice 2), configurar tooltip se for muito longa
+                if i == 2:  # Índice da descrição
+                    self._set_description_with_tooltip(self.detail_values[i], str(value))
+                else:
+                    self.detail_values[i].set_text(str(value))
+                    self.detail_values[i].set_tooltip_text("")  # Limpar tooltip para outros campos
         
         # Mostrar detalhes e habilitar instalação
         self.details_box.set_visible(True)
         self.install_button.set_sensitive(True)
         self.select_button.set_tooltip_text("Selecionar Outro Pacote")
         self.select_button.remove_css_class("suggested-action")
+    
+    def _set_description_with_tooltip(self, label, description):
+        """
+        Define a descrição no label com truncamento e tooltip se necessário
+        
+        Args:
+            label: Widget Gtk.Label onde definir a descrição
+            description: Texto da descrição
+        """
+        if not description or description in ['-', 'Sem descrição', 'Desconhecido']:
+            label.set_text(description or '-')
+            label.set_tooltip_text("")
+            return
+        
+        # Definir limite de caracteres para uma linha (aproximadamente)
+        max_chars = 60  # Ajuste baseado na largura disponível
+        
+        if len(description) > max_chars:
+            # Truncar e adicionar reticências
+            truncated = description[:max_chars].rstrip() + "..."
+            label.set_text(truncated)
+            # Definir tooltip com a descrição completa
+            label.set_tooltip_text(description)
+        else:
+            # Descrição cabe em uma linha
+            label.set_text(description)
+            label.set_tooltip_text("")
     
     def _set_fallback_icon(self, package_type):
         """Define ícone padrão baseado no tipo de pacote"""

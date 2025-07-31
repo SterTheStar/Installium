@@ -15,13 +15,36 @@ class Translator:
     def __init__(self):
         self.translations: Dict[str, str] = {}
         self.current_language = 'en'
-        self.translations_dir = Path(__file__).parent.parent / 'translations'
+        
+        # Detectar diretório de traduções (compatível com PyInstaller)
+        self.translations_dir = self._get_translations_dir()
         
         # Detectar idioma do sistema
         self._detect_system_language()
         
         # Carregar traduções
         self.load_language(self.current_language)
+    
+    def _get_translations_dir(self) -> Path:
+        """Obtém o diretório de traduções de forma compatível com PyInstaller"""
+        # Primeiro, tentar o caminho relativo (desenvolvimento)
+        dev_path = Path(__file__).parent.parent / 'translations'
+        if dev_path.exists():
+            return dev_path
+        
+        # Se não existir, tentar caminhos do sistema (produção)
+        system_paths = [
+            Path('/usr/share/installium/translations'),
+            Path('/usr/local/share/installium/translations'),
+            Path.home() / '.local/share/installium/translations'
+        ]
+        
+        for path in system_paths:
+            if path.exists():
+                return path
+        
+        # Fallback para o caminho de desenvolvimento
+        return dev_path
     
     def _detect_system_language(self):
         """Detecta o idioma do sistema automaticamente"""

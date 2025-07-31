@@ -7,8 +7,23 @@ Suporta: Debian (.deb), Arch (.pkg.tar.xz), Fedora (.rpm), Alpine (.apk)
 
 import sys
 import os
-import gi
 
+# 👉 Redirecionar stderr para suprimir Gtk-WARNINGs
+sys.stderr = open(os.devnull, 'w')
+
+# Suprimir warnings Python
+import warnings
+warnings.simplefilter("ignore")
+
+# Suprimir logs do PyGObject
+import logging
+logging.getLogger('gi').setLevel(logging.ERROR)
+
+# Suprimir mensagens de debug do GLib/GTK
+os.environ['G_MESSAGES_DEBUG'] = 'none'
+
+# GTK
+import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 
@@ -27,16 +42,11 @@ class PackageInstallerApp(Adw.Application):
         self.package_file = None
         
     def on_activate(self, app):
-        # Verificar se foi passado um arquivo como argumento via linha de comando
         if len(sys.argv) > 1:
             package_file_arg = sys.argv[1]
-            
-            # Verificar se o arquivo existe e é um pacote válido
             if os.path.exists(package_file_arg):
-                # Verificar se é um tipo de pacote suportado
                 detector = PackageDetector()
                 package_type = detector.detect_package_type(package_file_arg)
-                
                 if package_type:
                     self.package_file = os.path.abspath(package_file_arg)
                     print(f"Abrindo com pacote: {self.package_file}")
@@ -45,27 +55,21 @@ class PackageInstallerApp(Adw.Application):
             else:
                 print(f"Erro: Arquivo não encontrado: {package_file_arg}")
         
-        # Criar e mostrar a janela principal
         win = InstallerWindow(application=app, package_file=self.package_file)
         win.present()
     
     def on_open(self, app, files, n_files, hint):
-        """Callback chamado quando arquivos são abertos via sistema de arquivos"""
         if files and len(files) > 0:
             file_path = files[0].get_path()
-            
             if file_path and os.path.exists(file_path):
-                # Verificar se é um tipo de pacote suportado
                 detector = PackageDetector()
                 package_type = detector.detect_package_type(file_path)
-                
                 if package_type:
                     self.package_file = file_path
                     print(f"Abrindo arquivo: {file_path}")
                 else:
                     print(f"Aviso: {file_path} não é um tipo de pacote suportado")
         
-        # Criar e mostrar a janela principal
         win = InstallerWindow(application=app, package_file=self.package_file)
         win.present()
 
