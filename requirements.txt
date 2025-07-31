@@ -1,0 +1,2 @@
+# Dependências Python para o Instalador Universal de Pacotes
+PyGObject>=3.42.0
